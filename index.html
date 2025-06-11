@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clima Interactivo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+      color: white;
+      background: #000 url('emi12.webp') no-repeat center center fixed;
+      background-size: cover;
+      overflow: hidden; /* Evita scroll por defecto */
+    }
+    .pantalla {
+      display: none;
+      height: 100vh;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      position: relative;
+      overflow: auto; /* para scroll cuando contenido sea grande */
+      -webkit-overflow-scrolling: touch;
+      z-index: 1;
+      /* Quitar z-index negativos de video ya que no hay video */
+    }
+    #pantalla1 {
+      display: flex;
+    }
+    /* Video-fondo eliminado */
+
+    /* Formulario login */
+    .formulario-login {
+      background: rgba(0,0,0,0.4);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 15px #00c8ff;
+      width: 320px;
+      text-align: center;
+    }
+    .formulario-login input, .formulario-login button {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      border-radius: 10px;
+      border: 1px solid white;
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-size: 1rem;
+      backdrop-filter: blur(5px);
+    }
+    .formulario-login input::placeholder {
+      color: rgba(255,255,255,0.7);
+    }
+    .formulario-login button {
+      cursor: pointer;
+      background: #00c8ff;
+      font-weight: 700;
+      border: none;
+      transition: background 0.3s ease;
+    }
+    .formulario-login button:hover {
+      background: #008db3;
+    }
+    .formulario-login a {
+      color: #00c8ff;
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+
+    /* Pantalla 2 */
+    #pantalla2 {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 15px 50px 15px;
+      height: 100vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #00c8ff transparent;
+    }
+    #pantalla2::-webkit-scrollbar {
+      width: 8px;
+    }
+    #pantalla2::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #pantalla2::-webkit-scrollbar-thumb {
+      background-color: #00c8ff;
+      border-radius: 20px;
+    }
+
+    .titulo-clima {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-align: center;
+      text-shadow: 0 0 5px #00c8ff;
+    }
+    .botones-grafica {
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .botones-grafica button {
+      margin: 0 6px 10px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      background-color: #00c8ff;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      font-size: 0.9rem;
+    }
+    .botones-grafica button:hover {
+      background-color: #008db3;
+    }
+    #graficoClima {
+      max-width: 700px;
+      width: 100%;
+      max-height: 320px;
+      margin: 0 auto 20px auto;
+      background: rgba(0,0,0,0.5);
+      border-radius: 12px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    .informacion-clima {
+      text-align: center;
+      font-size: 1.1rem;
+      background: rgba(0,0,0,0.6);
+      padding: 15px 20px;
+      border-radius: 15px;
+      max-width: 600px;
+      margin: 0 auto 30px auto;
+      user-select: none;
+    }
+    .informacion-clima p {
+      margin: 10px 0;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .informacion-clima p:hover {
+      color: #00c8ff;
+    }
+    .como-funciona {
+      font-size: 1rem;
+      background: rgba(0,0,0,0.5);
+      padding: 15px 25px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      text-align: center;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .dias-abajo {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      max-width: 700px;
+      margin: 0 auto 40px auto;
+    }
+    .dia-mini {
+      cursor: pointer;
+      padding: 12px;
+      text-align: center;
+      width: 70px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.6);
+      color: black;
+      user-select: none;
+      transition: background 0.3s ease;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .dia-mini span {
+      margin-top: 5px;
+    }
+    .dia-mini:hover {
+      background: rgba(255,255,255,0.85);
+    }
+
+    #modalDetalle {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right:0; bottom:0;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #modalDetalle .contenido-modal {
+      background: #111;
+      padding: 25px 30px;
+      border-radius: 15px;
+      color: white;
+      text-align: center;
+      box-shadow: 0 0 15px #00c8ff;
+      max-width: 400px;
+      margin: 10px;
+    }
+    #modalDetalle .btn-cerrar {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #00c8ff;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    #modalDetalle .btn-cerrar:hover {
+      background: #008db3;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PANTALLA 1: Login -->
+  <div id="pantalla1" class="pantalla" style="display:flex;">
+    <div class="formulario-login">
+      <h2>Iniciar sesión</h2>
+      <input type="email" id="emailInput" placeholder="Correo electrónico" />
+      <input type="password" id="passwordInput" placeholder="Contraseña" />
+      <button onclick="mostrarSegundaPantalla()">Iniciar sesión</button>
+      <a href="https://accounts.google.com/signup" target="_blank" rel="noopener noreferrer">Crear cuenta de correo</a>
+    </div>
+  </div>
+
+  <!-- PANTALLA 2: Info Clima -->
+  <div id="pantalla2" class="pantalla">
+
+    <div class="titulo-clima">Información del Clima</div>
+
+    <div class="botones-grafica">
+      <button onclick="actualizarGrafico('temperatura')">Temperatura</button>
+      <button onclick="actualizarGrafico('viento')">Viento</button>
+      <button onclick="actualizarGrafico('humedad')">Humedad</button>
+      <button onclick="actualizarGrafico('precipitacion')">Precipitación</button>
+    </div>
+
+    <canvas id="graficoClima"></canvas>
+
+    <div class="informacion-clima" id="infoClima">
+      <p id="descripcionClima" title="Haz clic para más info">Información meteorológica general</p>
+      <p id="temperaturaClima" title="Haz clic para más info">Temperatura: 22°C</p>
+      <p id="vientoClima" title="Haz clic para más info">Viento: 10 km/h</p>
+      <p id="humedadClima" title="Haz clic para más info">Humedad: 60%</p>
+      <p id="precipitacionClima" title="Haz clic para más info">Precipitación: 5 mm</p>
+    </div>
+
+    <div class="como-funciona">
+      Selecciona un día abajo para ver más detalles.
+    </div>
+
+    <div class="dias-abajo" id="diasAbajo">
+      <div class="dia-mini" onclick="mostrarDetalleDia(0)">Lun<span>22°C</span></div>
+      <div class="dia-mini" onclick="mostrarDetalleDia(1)">Mar<span>23°C</span></div>
+      <div class="dia-mini" onclick="mostrarDetalleDia(2)">Mié<span>21°C</span></div>
+      <div class="dia-mini" onclick="mostrarDetalleDia(3)">Jue<span>24°C</span></div>
+      <div class="dia-mini" onclick="mostrarDetalleDia(4)">Vie<span>20°C</span></div>
+    </div>
+
+  </div>
+
+  <!-- Modal Detalle -->
+  <div id="modalDetalle">
+    <div class="contenido-modal">
+      <h3>Detalles del Día</h3>
+      <p id="detalleTexto">Detalles meteorológicos específicos...</p>
+      <button class="btn-cerrar" onclick="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+
+<script>
+  function mostrarSegundaPantalla() {
+    document.getElementById('pantalla1').style.display = 'none';
+    document.getElementById('pantalla2').style.display = 'flex';
+  }
+
+  const ctx = document.getElementById('graficoClima').getContext('2d');
+  let grafico;
+
+  const datosEjemplo = {
+    temperatura: [22, 23, 21, 24, 20],
+    viento: [10, 15, 8, 12, 7],
+    humedad: [60, 55, 65, 50, 70],
+    precipitacion: [5, 3, 0, 10, 2],
+    dias: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie']
+  };
+
+  function actualizarGrafico(tipo) {
+    if (grafico) grafico.destroy();
+
+    let label = '';
+    let color = '';
+
+    switch(tipo) {
+      case 'temperatura':
+        label = 'Temperatura (°C)';
+        color = 'rgba(255, 99, 132, 0.7)';
+        break;
+      case 'viento':
+        label = 'Viento (km/h)';
+        color = 'rgba(54, 162, 235, 0.7)';
+        break;
+      case 'humedad':
+        label = 'Humedad (%)';
+        color = 'rgba(75, 192, 192, 0.7)';
+        break;
+      case 'precipitacion':
+        label = 'Precipitación (mm)';
+        color = 'rgba(153, 102, 255, 0.7)';
+        break;
+    }
+
+    grafico = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: datosEjemplo.dias,
+        datasets: [{
+          label: label,
+          data: datosEjemplo[tipo],
+          backgroundColor: color,
+          borderColor: color,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: color,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true }
+        },
+        plugins: {
+          legend: { display: true, position: 'top' }
+        }
+      }
+    });
+  }
+
+  actualizarGrafico('temperatura');
+
+  // Modal detalles días
+  const detallesDias = [
+    "Lunes: Soleado, temperatura máxima 22°C, mínima 14°C, viento suave.",
+    "Martes: Parcialmente nublado, máxima 23°C, mínima 15°C, viento moderado.",
+    "Miércoles: Lluvias ligeras, máxima 21°C, mínima 13°C, viento variable.",
+    "Jueves: Soleado con brisa, máxima 24°C, mínima 16°C, viento fuerte.",
+    "Viernes: Nublado, máxima 20°C, mínima 12°C, posibilidad de lluvia."
+  ];
+
+  function mostrarDetalleDia(indice) {
+    document.getElementById('detalleTexto').textContent = detallesDias[indice];
+    document.getElementById('modalDetalle').style.display = 'flex';
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalDetalle').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>
